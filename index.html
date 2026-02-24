@@ -19,8 +19,8 @@
 <script type="text/babel">
 const { useState, useEffect, useCallback } = React;
 
-const API_BASE = 'https://replymate-backend-production.up.railway.app';
-  
+const API_BASE = 'https://YOUR_RAILWAY_URL.railway.app'; // update after deploy
+
 async function api(path, licenseKey, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
@@ -129,6 +129,7 @@ function CustomerApp() {
   const [editProfile, setEditProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({});
   const [newTone, setNewTone] = useState('');
+  const [ebayNotice, setEbayNotice] = useState(null); // { type: 'success'|'error', message: string }
 
   const call = useCallback((path, opts) => api(path, licenseKey, opts), [licenseKey]);
 
@@ -136,6 +137,23 @@ function CustomerApp() {
     setLicenseKey(key);
     setLicenseData(data);
     setAuthed(true);
+    // Read URL params — eBay OAuth callback lands here
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ebay_connected') === 'true') {
+      setTab('settings');
+      setEbayNotice({ type: 'success', message: `eBay account connected: @${params.get('username') || 'your account'}` });
+      window.history.replaceState({}, '', '/');
+    } else if (params.get('ebay_error')) {
+      setTab('settings');
+      const errMap = {
+        missing_params: 'OAuth flow was started without a license key. Please connect from the Settings tab below.',
+        token_failed: 'eBay token exchange failed. Try connecting again.',
+        user_not_found: 'License key not found. Make sure you are logged in.',
+        server_error: 'Server error during eBay connection. Try again.'
+      };
+      setEbayNotice({ type: 'error', message: errMap[params.get('ebay_error')] || `eBay error: ${params.get('ebay_error')}` });
+      window.history.replaceState({}, '', '/');
+    }
   }
 
   useEffect(() => {
@@ -353,6 +371,12 @@ function CustomerApp() {
         {/* ── SETTINGS ── */}
         {tab === 'settings' && profile && (
           <div>
+            {ebayNotice && (
+              <div style={{ background: ebayNotice.type === 'success' ? '#f0fdf4' : '#fff1f2', border: `1px solid ${ebayNotice.type === 'success' ? '#bbf7d0' : '#fecdd3'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: ebayNotice.type === 'success' ? '#15803d' : '#be123c', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{ebayNotice.type === 'success' ? '✓ ' : '⚠ '}{ebayNotice.message}</span>
+                <button onClick={() => setEbayNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 16 }}>✕</button>
+              </div>
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ fontSize: 20, fontWeight: 800 }}>Account Settings</h2>
               {!editProfile && <button onClick={() => setEditProfile(true)} style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 8, padding: '8px 16px', color: '#4f46e5', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Edit</button>}
@@ -384,7 +408,7 @@ function CustomerApp() {
                     {a.is_primary && <span style={{ fontSize: 10, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>PRIMARY</span>}
                   </div>
                 ))
-                : <div style={{ fontSize: 13, color: '#9ca3af' }}>No eBay account connected. <a href={`https://replymate-backend-production.up.railway.app/ebay/connect?license_key=${licenseKey}`} style={{ color: '#4f46e5', fontWeight: 600 }}>Connect now →</a></div>
+                : <div style={{ fontSize: 13, color: '#9ca3af' }}>No eBay account connected. <a href={`https://YOUR_RAILWAY_URL.railway.app/ebay/connect?license_key=${licenseKey}`} style={{ color: '#4f46e5', fontWeight: 600 }}>Connect now →</a></div>
               }
               <div style={{ marginTop: 16, fontSize: 12, color: '#9ca3af' }}>License Key: <code style={{ fontFamily: 'monospace', background: '#f9fafb', padding: '2px 6px', borderRadius: 4 }}>{licenseKey}</code></div>
             </div>
