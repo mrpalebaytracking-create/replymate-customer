@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ReplyMate Pro — My Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f9fafb; color: #111827; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const API_BASE = 'https://YOUR_RAILWAY_URL.railway.app'; // update after deploy
+
+async function api(path, licenseKey, options = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: { 'x-license-key': licenseKey, 'Content-Type': 'application/json', ...(options.headers || {}) }
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+// ── Stat Card ─────────────────────────────────────────────────────────
+function StatCard({ label, value, sub, color = '#111827', bg = '#fff', border = '#e5e7eb', icon }) {
+  return (
+    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: '20px 22px' }}>
+      {icon && <div style={{ fontSize: 22, marginBottom: 10 }}>{icon}</div>}
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ── Mini bar chart ────────────────────────────────────────────────────
+function MiniChart({ data }) {
+  const max = Math.max(...data.map(d => d.replies_count || 0), 1);
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 48 }}>
+      {data.map(d => (
+        <div key={d.date} title={`${d.date}: ${d.replies_count} replies`} style={{ flex: 1, background: '#4f46e5', borderRadius: '2px 2px 0 0', height: `${Math.max(4, (d.replies_count / max) * 44)}px`, opacity: 0.7 }} />
+      ))}
+    </div>
+  );
+}
+
+// ── Login Screen ──────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [key, setKey] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogin() {
+    if (!key.trim()) return;
+    setLoading(true); setError('');
+    try {
+      const data = await api('/license/validate', key.trim());
+      if (data.valid) {
+        localStorage.setItem('rm_license_key', key.trim());
+        onLogin(key.trim(), data);
+      } else {
+        setError(data.reason === 'trial_expired' ? 'Your 14-day trial has ended. Please upgrade to continue.' : 'Invalid license key. Check the key from your welcome email.');
+      }
+    } catch (e) {
+      setError('Could not connect to server. Try again shortly.');
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: 40, width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
+          <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16 }}>✦</div>
+          <div style={{ fontWeight: 800, fontSize: 18 }}>Reply<span style={{ color: '#4f46e5' }}>Mate</span> Pro</div>
+        </div>
+        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>My Dashboard</h2>
+        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Enter your license key from your welcome email.</p>
+        <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>License Key</label>
+        <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} placeholder="RM-XXXX-XXXX-XXXX-XXXX" style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '11px 14px', fontSize: 14, fontFamily: 'monospace', outline: 'none', marginBottom: 16 }} />
+        {error && <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '10px 12px', color: '#be123c', fontSize: 13, marginBottom: 14 }}>{error}</div>}
+        <button onClick={handleLogin} disabled={loading} style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 9, padding: 12, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
+          {loading ? 'Checking...' : 'Enter Dashboard →'}
+        </button>
+        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#9ca3af' }}>
+          Don't have a key? <a href="/" style={{ color: '#4f46e5', fontWeight: 600 }}>Start free trial</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Plan Badge ────────────────────────────────────────────────────────
+function PlanBadge({ plan }) {
+  const styles = {
+    trial:   { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
+    pro:     { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+    agency:  { bg: '#f5f3ff', color: '#4f46e5', border: '#ddd6fe' },
+    expired: { bg: '#f9fafb', color: '#9ca3af', border: '#e5e7eb' }
+  };
+  const s = styles[plan] || styles.expired;
+  return <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>{plan?.toUpperCase()}</span>;
+}
+
+// ── Main App ───────────────────────────────────────────────────────────
+function CustomerApp() {
+  const [licenseKey, setLicenseKey] = useState(localStorage.getItem('rm_license_key') || '');
+  const [licenseData, setLicenseData] = useState(null);
+  const [authed, setAuthed] = useState(false);
+  const [tab, setTab] = useState('overview');
+  const [profile, setProfile] = useState(null);
+  const [usage, setUsage] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [histTotal, setHistTotal] = useState(0);
+  const [histPage, setHistPage] = useState(1);
+  const [histSearch, setHistSearch] = useState('');
+  const [tones, setTones] = useState([]);
+  const [convos, setConvos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [editProfile, setEditProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({});
+  const [newTone, setNewTone] = useState('');
+
+  const call = useCallback((path, opts) => api(path, licenseKey, opts), [licenseKey]);
+
+  function handleLogin(key, data) {
+    setLicenseKey(key);
+    setLicenseData(data);
+    setAuthed(true);
+  }
+
+  useEffect(() => {
+    if (!authed) return;
+    setLoading(true);
+    Promise.all([
+      call('/customer/profile'),
+      call('/usage/summary')
+    ]).then(([p, u]) => {
+      setProfile(p);
+      setUsage(u);
+      setProfileForm({ name: p.name || '', business_name: p.business_name || '', signature_name: p.signature_name || '', reply_tone: p.reply_tone || 'professional' });
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [authed]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'history') return;
+    const params = new URLSearchParams({ page: histPage, limit: 20 });
+    if (histSearch) params.set('search', histSearch);
+    call(`/usage/history?${params}`).then(d => { setHistory(d.replies || []); setHistTotal(d.total || 0); });
+  }, [authed, tab, histPage, histSearch]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'tone') return;
+    call('/customer/tone-samples').then(d => setTones(d.samples || []));
+  }, [authed, tab]);
+
+  useEffect(() => {
+    if (!authed || tab !== 'billing') return;
+    call('/customer/profile').then(d => setProfile(d));
+  }, [authed, tab]);
+
+  async function saveProfile() {
+    await call('/customer/profile', { method: 'PUT', body: JSON.stringify(profileForm) });
+    setProfile(p => ({ ...p, ...profileForm }));
+    setEditProfile(false);
+  }
+
+  async function addTone() {
+    if (!newTone.trim()) return;
+    await call('/customer/tone-samples', { method: 'POST', body: JSON.stringify({ text: newTone }) });
+    setNewTone('');
+    call('/customer/tone-samples').then(d => setTones(d.samples || []));
+  }
+
+  async function deleteTone(id) {
+    await call(`/customer/tone-samples/${id}`, { method: 'DELETE' });
+    setTones(t => t.filter(s => s.id !== id));
+  }
+
+  async function openBillingPortal() {
+    const data = await call('/stripe/create-portal', { method: 'POST', body: JSON.stringify({ license_key: licenseKey }) });
+    if (data.portal_url) window.open(data.portal_url, '_blank');
+  }
+
+  async function openCheckout(plan) {
+    const data = await call('/stripe/create-checkout', { method: 'POST', body: JSON.stringify({ license_key: licenseKey, plan }) });
+    if (data.checkout_url) window.location.href = data.checkout_url;
+  }
+
+  if (!authed) return <LoginScreen onLogin={handleLogin} />;
+
+  const tabs = [
+    { id: 'overview', label: '📊 Overview' },
+    { id: 'history', label: '📋 Reply History' },
+    { id: 'tone', label: '🎭 Tone Library' },
+    { id: 'billing', label: '💳 Billing' },
+    { id: 'settings', label: '⚙ Settings' }
+  ];
+
+  const INTENT_LABELS = { tracking: 'Tracking', return: 'Return Request', refund: 'Refund', damaged_item: 'Damaged Item', shipping_inquiry: 'Shipping', item_question: 'Product Q&A', discount_request: 'Discount', cancellation: 'Cancel Order', positive_feedback: 'Positive', general: 'General' };
+
+  return (
+    <div style={{ minHeight: '100vh' }}>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: '1px solid #f3f4f6', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13 }}>✦</div>
+          <span style={{ fontWeight: 800, fontSize: 15 }}>Reply<span style={{ color: '#4f46e5' }}>Mate</span> Pro</span>
+        </div>
+        <div style={{ display: 'flex', gap: 2 }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ background: tab === t.id ? '#f5f3ff' : 'none', border: 'none', borderRadius: 7, padding: '6px 12px', fontWeight: 600, fontSize: 12, color: tab === t.id ? '#4f46e5' : '#6b7280', cursor: 'pointer' }}>{t.label}</button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {profile && <PlanBadge plan={profile.plan} />}
+          <button onClick={() => { localStorage.removeItem('rm_license_key'); setAuthed(false); setLicenseKey(''); }} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 7, padding: '5px 12px', fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>Sign Out</button>
+        </div>
+      </div>
+
+      <div style={{ padding: 28, maxWidth: 1100, margin: '0 auto' }}>
+        {loading && <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>Loading...</div>}
+
+        {/* ── OVERVIEW ── */}
+        {tab === 'overview' && !loading && profile && usage && (
+          <div>
+            <div style={{ marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Welcome back, {profile.name || 'Seller'} 👋</h2>
+              {profile.plan === 'trial' && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 9, padding: '10px 14px', fontSize: 13, color: '#92400e', marginTop: 10, display: 'inline-block' }}>⏰ Trial ends in <strong>{profile.trial_days_left} days</strong> — <button onClick={() => setTab('billing')} style={{ background: 'none', border: 'none', color: '#4f46e5', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>upgrade now →</button></div>}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+              <StatCard icon="⚡" label="Replies This Month" value={usage.this_month?.replies || 0} sub="AI-generated" color="#4f46e5" bg="#f5f3ff" border="#ddd6fe" />
+              <StatCard icon="📅" label="All Time Replies" value={usage.all_time?.replies || 0} />
+              <StatCard icon="💰" label="AI Cost This Month" value={`$${(usage.this_month?.cost || 0).toFixed(4)}`} sub="OpenAI + Anthropic" />
+              <StatCard icon="⏱" label="Est. Time Saved" value={`${Math.round((usage.all_time?.replies || 0) * 3)}m`} sub="~3 mins per reply" color="#15803d" bg="#f0fdf4" border="#bbf7d0" />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Activity — Last 7 Days</div>
+                {usage.daily_last_7?.length > 0 ? <MiniChart data={usage.daily_last_7} /> : <div style={{ color: '#9ca3af', fontSize: 13, padding: '20px 0' }}>No data yet — start replying on eBay!</div>}
+              </div>
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 14 }}>Top Customer Intents</div>
+                {usage.top_intents?.length > 0 ? usage.top_intents.map(([intent, count]) => (
+                  <div key={intent} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, color: '#374151' }}>{INTENT_LABELS[intent] || intent}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#4f46e5' }}>{count}</span>
+                  </div>
+                )) : <div style={{ color: '#9ca3af', fontSize: 13 }}>No data yet</div>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── HISTORY ── */}
+        {tab === 'history' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Reply History ({histTotal})</h2>
+              <input value={histSearch} onChange={e => { setHistSearch(e.target.value); setHistPage(1); }} placeholder="Search messages..." style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, width: 240, outline: 'none' }} />
+            </div>
+            {history.map(r => (
+              <div key={r.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 11, padding: 18, marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
+                  <span style={{ background: '#f5f3ff', color: '#4f46e5', border: '1px solid #ddd6fe', borderRadius: 12, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{INTENT_LABELS[r.intent] || r.intent}</span>
+                  <span style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: 12, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{r.route === 'rule' ? '⚡ Free' : r.route === 'mini' ? '🤖 GPT-mini' : '🔮 Claude'}</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>{new Date(r.created_at).toLocaleDateString()}</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', borderRadius: 7, padding: '8px 11px', marginBottom: 8, fontFamily: 'monospace' }}>{(r.customer_message || '').slice(0, 200)}</div>
+                <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6 }}>{(r.generated_reply || '').slice(0, 300)}</div>
+              </div>
+            ))}
+            {history.length === 0 && <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>No replies yet. Start generating replies on eBay!</div>}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+              <button disabled={histPage === 1} onClick={() => setHistPage(p => p - 1)} style={{ border: '1px solid #e5e7eb', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', background: '#fff', fontSize: 13 }}>← Prev</button>
+              <span style={{ padding: '6px 12px', fontSize: 13 }}>Page {histPage}</span>
+              <button disabled={history.length < 20} onClick={() => setHistPage(p => p + 1)} style={{ border: '1px solid #e5e7eb', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', background: '#fff', fontSize: 13 }}>Next →</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── TONE LIBRARY ── */}
+        {tab === 'tone' && (
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Tone Library</h2>
+            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Paste examples of your past eBay replies. AI will learn your writing style and mimic it in every generated reply.</p>
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Add New Sample</div>
+              <textarea value={newTone} onChange={e => setNewTone(e.target.value)} rows={5} placeholder="Paste a full conversation — buyer message + your reply..." style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px', fontSize: 13, resize: 'vertical', outline: 'none', fontFamily: 'monospace', lineHeight: 1.6 }} />
+              <button onClick={addTone} style={{ marginTop: 10, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '9px 20px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>+ Add to Library</button>
+            </div>
+            {tones.map(s => (
+              <div key={s.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>Added {new Date(s.created_at).toLocaleDateString()}</span>
+                  <button onClick={() => deleteTone(s.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 12 }}>✕ Remove</button>
+                </div>
+                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.6 }}>{s.text.slice(0, 300)}{s.text.length > 300 ? '...' : ''}</div>
+              </div>
+            ))}
+            {tones.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: '#d1d5db', fontSize: 13 }}>No samples yet. Add your first one above.</div>}
+          </div>
+        )}
+
+        {/* ── BILLING ── */}
+        {tab === 'billing' && profile && (
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24 }}>Billing & Plan</h2>
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28, marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 4 }}>Current Plan</div>
+                  <PlanBadge plan={profile.plan} />
+                </div>
+                {profile.plan === 'trial' && <div style={{ fontSize: 14, color: '#b45309', fontWeight: 600 }}>⏰ {profile.trial_days_left} days remaining</div>}
+                {(profile.plan === 'pro' || profile.plan === 'agency') && profile.subscription_end && <div style={{ fontSize: 13, color: '#6b7280' }}>Renews {new Date(profile.subscription_end).toLocaleDateString()}</div>}
+              </div>
+
+              {(profile.plan === 'trial' || profile.plan === 'expired') && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div style={{ border: '2px solid #4f46e5', borderRadius: 12, padding: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#4f46e5', marginBottom: 4 }}>PRO</div>
+                    <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 8, letterSpacing: '-0.03em' }}>$19<span style={{ fontSize: 14, fontWeight: 500, color: '#9ca3af' }}>/mo</span></div>
+                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Unlimited replies · 1 eBay account</div>
+                    <button onClick={() => openCheckout('pro')} style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '10px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Upgrade to Pro →</button>
+                  </div>
+                  <div style={{ border: '2px solid #7c3aed', borderRadius: 12, padding: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 4 }}>AGENCY</div>
+                    <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 8, letterSpacing: '-0.03em' }}>$49<span style={{ fontSize: 14, fontWeight: 500, color: '#9ca3af' }}>/mo</span></div>
+                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Unlimited replies · 3 eBay accounts</div>
+                    <button onClick={() => openCheckout('agency')} style={{ width: '100%', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', border: 'none', borderRadius: 8, padding: '10px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Upgrade to Agency →</button>
+                  </div>
+                </div>
+              )}
+
+              {(profile.plan === 'pro' || profile.plan === 'agency') && (
+                <button onClick={openBillingPortal} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 9, padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>Manage Subscription / Cancel →</button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── SETTINGS ── */}
+        {tab === 'settings' && profile && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Account Settings</h2>
+              {!editProfile && <button onClick={() => setEditProfile(true)} style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 8, padding: '8px 16px', color: '#4f46e5', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Edit</button>}
+            </div>
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28, marginBottom: 20 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 18, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Business Info</h3>
+              {['name', 'business_name', 'signature_name'].map(field => (
+                <div key={field} style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{field.replace('_', ' ')}</div>
+                  {editProfile
+                    ? <input value={profileForm[field] || ''} onChange={e => setProfileForm(f => ({ ...f, [field]: e.target.value }))} style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 12px', fontSize: 13, outline: 'none' }} />
+                    : <div style={{ fontSize: 14, color: '#374151' }}>{profile[field] || <span style={{ color: '#d1d5db' }}>Not set</span>}</div>
+                  }
+                </div>
+              ))}
+              {editProfile && (
+                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                  <button onClick={saveProfile} style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '9px 20px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Save Changes</button>
+                  <button onClick={() => setEditProfile(false)} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 16px', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+                </div>
+              )}
+            </div>
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.07em' }}>eBay Accounts</h3>
+              {profile.ebay_accounts?.length > 0
+                ? profile.ebay_accounts.map(a => (
+                  <div key={a.ebay_username} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>{a.ebay_username}</span>
+                    {a.is_primary && <span style={{ fontSize: 10, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>PRIMARY</span>}
+                  </div>
+                ))
+                : <div style={{ fontSize: 13, color: '#9ca3af' }}>No eBay account connected. <a href={`https://YOUR_RAILWAY_URL.railway.app/ebay/connect?license_key=${licenseKey}`} style={{ color: '#4f46e5', fontWeight: 600 }}>Connect now →</a></div>
+              }
+              <div style={{ marginTop: 16, fontSize: 12, color: '#9ca3af' }}>License Key: <code style={{ fontFamily: 'monospace', background: '#f9fafb', padding: '2px 6px', borderRadius: 4 }}>{licenseKey}</code></div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<CustomerApp />);
+</script>
+</body>
+</html>
