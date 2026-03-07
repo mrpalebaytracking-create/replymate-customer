@@ -1,425 +1,1050 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ReplyMate Pro — My Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f9fafb; color: #111827; }
-    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReplyMate Pro — Command Centre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070810;--surface:#0d0f1a;--card:#111420;--card2:#161928;
+  --border:#1c2035;--border2:#242840;
+  --green:#00d68f;--green-dim:#00d68f22;--green-mid:#00d68f55;
+  --blue:#4361ee;--blue-dim:#4361ee22;
+  --amber:#f7b731;--amber-dim:#f7b73122;
+  --red:#ef4444;--red-dim:#ef444422;
+  --purple:#a855f7;--purple-dim:#a855f722;
+  --text:#e2e8f0;--muted:#8892a4;--dim:#4a5568;
+  --font-head:'Syne',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,#4361ee0d,transparent),radial-gradient(ellipse 60% 40% at 90% 80%,#00d68f07,transparent);pointer-events:none;z-index:0}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1}
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:48px 40px;width:100%;max-width:420px;text-align:center}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:32px}
+.login-logo-mark{width:44px;height:44px;background:linear-gradient(135deg,var(--blue),var(--green));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.login-logo-text{font-family:var(--font-head);font-size:22px;font-weight:800;letter-spacing:-0.02em}
+.login-logo-text span{color:var(--green)}
+.login-title{font-family:var(--font-head);font-size:26px;font-weight:800;margin-bottom:8px;letter-spacing:-0.03em}
+.login-sub{color:var(--muted);font-size:14px;margin-bottom:32px;line-height:1.5}
+.input-wrap{position:relative;margin-bottom:16px}
+.input-wrap input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;color:var(--text);font-family:var(--font-mono);font-size:13px;outline:none;transition:border-color 0.2s}
+.input-wrap input:focus{border-color:var(--blue)}
+.input-wrap input::placeholder{color:var(--dim)}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--blue),#3b4fd4);border:none;border-radius:10px;padding:14px;color:#fff;font-family:var(--font-head);font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.1s;letter-spacing:0.01em}
+.btn-primary:hover{opacity:0.9}
+.btn-primary:active{transform:scale(0.99)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
+.login-err{color:var(--red);font-size:12px;margin-top:12px}
+
+/* LAYOUT */
+.app{position:relative;z-index:1}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.logo-text{font-family:var(--font-head);font-size:16px;font-weight:800;letter-spacing:-0.02em}
+.logo-text span{color:var(--green)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.plan-badge{font-family:var(--font-mono);font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase}
+.plan-trial{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)44}
+.plan-pro{background:var(--green-dim);color:var(--green);border:1px solid var(--green-mid)}
+.plan-agency{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)44}
+.user-name{color:var(--muted);font-size:13px}
+.signout-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.2s}
+.signout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* MAIN */
+.main{padding:28px;max-width:1320px;margin:0 auto}
+
+/* ROI WALL */
+.roi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+@media(max-width:900px){.roi-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.roi-grid{grid-template-columns:1fr}}
+.roi-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 20px;position:relative;overflow:hidden;transition:border-color 0.2s}
+.roi-card:hover{border-color:var(--border2)}
+.roi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:16px 16px 0 0}
+.roi-card.green::before{background:linear-gradient(90deg,var(--green),transparent)}
+.roi-card.blue::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.roi-card.amber::before{background:linear-gradient(90deg,var(--amber),transparent)}
+.roi-card.purple::before{background:linear-gradient(90deg,var(--purple),transparent)}
+.roi-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px}
+.roi-value{font-family:var(--font-mono);font-size:36px;font-weight:700;line-height:1;letter-spacing:-0.03em;margin-bottom:6px}
+.roi-card.green .roi-value{color:var(--green)}
+.roi-card.blue .roi-value{color:var(--blue)}
+.roi-card.amber .roi-value{color:var(--amber)}
+.roi-card.purple .roi-value{color:var(--purple)}
+.roi-sub{font-size:12px;color:var(--muted)}
+.roi-bg-num{position:absolute;right:-10px;bottom:-14px;font-family:var(--font-mono);font-size:72px;font-weight:800;opacity:0.04;line-height:1;pointer-events:none;user-select:none}
+
+/* 14 DAY BANNER */
+.improvement-banner{background:linear-gradient(135deg,#0d1a2e,#0d1f1a);border:1px solid var(--green-mid);border-radius:16px;padding:24px 28px;margin-bottom:28px;position:relative;overflow:hidden}
+.improvement-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,var(--green)18,transparent 70%);opacity:0.06}
+.imp-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.imp-title{font-family:var(--font-head);font-size:16px;font-weight:700}
+.imp-badge{background:var(--green-dim);color:var(--green);font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--green-mid);letter-spacing:0.05em}
+.imp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:700px){.imp-grid{grid-template-columns:repeat(2,1fr)}}
+.imp-item{text-align:center}
+.imp-before{font-family:var(--font-mono);font-size:18px;color:var(--dim);font-weight:600}
+.imp-arrow{color:var(--green);font-size:18px;margin:2px 0}
+.imp-after{font-family:var(--font-mono);font-size:26px;color:var(--green);font-weight:700}
+.imp-label{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* TRIAL COUNTDOWN */
+.trial-bar{background:linear-gradient(135deg,#1a1200,#1a0800);border:1px solid var(--amber)33;border-radius:12px;padding:14px 20px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.trial-text{font-size:13px;color:var(--amber)}
+.trial-text strong{font-family:var(--font-mono);font-size:16px}
+.upgrade-btn{background:var(--amber);color:#000;border:none;border-radius:8px;padding:8px 18px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity 0.2s}
+.upgrade-btn:hover{opacity:0.85}
+
+/* TABS */
+.tabs-wrap{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px;overflow-x:auto}
+.tab-btn{flex-shrink:0;padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{background:var(--card2);color:var(--text);font-weight:600}
+.tab-btn .tab-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* SECTION HEADINGS */
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:18px}
+.section-title{font-family:var(--font-head);font-size:18px;font-weight:700;letter-spacing:-0.02em}
+.section-count{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px}
+.card-title{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:780px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* INTENT BAR CHART */
+.intent-bar-wrap{display:flex;flex-direction:column;gap:10px}
+.intent-row{display:flex;align-items:center;gap:12px}
+.intent-label{font-size:12px;color:var(--muted);width:130px;flex-shrink:0;text-transform:capitalize}
+.intent-track{flex:1;background:var(--surface);border-radius:4px;height:8px;overflow:hidden}
+.intent-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+.intent-num{font-family:var(--font-mono);font-size:12px;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+
+/* STYLE DNA */
+.dna-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:700px){.dna-grid{grid-template-columns:1fr 1fr}}
+.dna-category{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px}
+.dna-cat-label{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px}
+.dna-cat-count{font-family:var(--font-mono);font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.dna-cat-sub{font-size:11px;color:var(--dim)}
+.pref-list{display:flex;flex-direction:column;gap:8px}
+.pref-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.pref-badge{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-top:1px}
+.pref-tone{background:var(--blue-dim);color:var(--blue)}
+.pref-length{background:var(--green-dim);color:var(--green)}
+.pref-content{background:var(--purple-dim);color:var(--purple)}
+.pref-policy{background:var(--amber-dim);color:var(--amber)}
+.pref-greeting{background:#f0abfc22;color:#f0abfc}
+.pref-closing{background:#67e8f922;color:#67e8f9}
+.pref-text{font-size:13px;line-height:1.4;flex:1}
+.pref-seen{font-family:var(--font-mono);font-size:10px;color:var(--dim);margin-left:auto;flex-shrink:0;align-self:center}
+
+/* RISK SHIELD */
+.risk-log{display:flex;flex-direction:column;gap:10px}
+.risk-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;border-left:3px solid transparent}
+.risk-item.high{border-left-color:var(--red)}
+.risk-item.medium{border-left-color:var(--amber)}
+.risk-item.low{border-left-color:var(--green)}
+.risk-item-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.risk-intent{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em}
+.risk-intent.high{background:var(--red-dim);color:var(--red)}
+.risk-intent.medium{background:var(--amber-dim);color:var(--amber)}
+.risk-intent.low{background:var(--green-dim);color:var(--green)}
+.risk-date{font-size:11px;color:var(--dim);margin-left:auto}
+.risk-msg{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.risk-shield-tag{font-size:11px;color:var(--green);margin-top:4px;display:flex;align-items:center;gap:4px}
+
+/* FEEDBACK */
+.feedback-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.feedback-stats{grid-template-columns:1fr}}
+.fb-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.fb-stat-num{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1}
+.fb-stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.case-list{display:flex;flex-direction:column;gap:8px}
+.case-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.case-item-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.case-rating{display:flex;gap:2px}
+.case-status{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:auto;letter-spacing:0.04em}
+.status-draft{background:var(--blue-dim);color:var(--blue)}
+.status-sent{background:var(--green-dim);color:var(--green)}
+.status-won{background:#00ff8822;color:#00ff88}
+.case-comment{font-size:13px;color:var(--muted)}
+
+/* RESPONSE TIME */
+.streak-display{text-align:center;padding:28px;background:var(--surface);border-radius:12px;margin-bottom:20px}
+.streak-num{font-family:var(--font-mono);font-size:64px;font-weight:700;color:var(--amber);line-height:1}
+.streak-label{font-size:14px;color:var(--muted);margin-top:8px}
+.streak-fire{font-size:32px;margin-bottom:8px}
+
+/* MINI SPARKLINE */
+.sparkline-wrap{display:flex;align-items:flex-end;gap:3px;height:48px}
+.spark-bar{flex:1;border-radius:3px 3px 0 0;transition:height 0.5s ease;min-height:3px;max-height:48px}
+
+/* HISTORY TABLE */
+.history-table{width:100%;border-collapse:collapse}
+.history-table th{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:0.06em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.history-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+.history-table tr:last-child td{border-bottom:none}
+.history-table tr:hover td{background:var(--surface)}
+.msg-cell{max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.route-pill{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.route-rule{background:#ffffff08;color:var(--dim)}
+.route-mini{background:var(--blue-dim);color:var(--blue)}
+.route-large{background:var(--purple-dim);color:var(--purple)}
+
+/* MINI STAT ROW */
+.mini-stats{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.mini-stat{display:flex;flex-direction:column;gap:2px}
+.mini-stat-val{font-family:var(--font-mono);font-size:22px;font-weight:700}
+.mini-stat-label{font-size:11px;color:var(--muted)}
+
+/* LOADING */
+.skeleton{background:linear-gradient(90deg,var(--card) 25%,var(--card2) 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* COUNTER ANIMATION */
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.count-anim{animation:countUp 0.6s cubic-bezier(.16,1,.3,1) both}
+
+/* DOT GRID BG */
+.section-content{animation:fadeIn 0.3s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:48px 24px;color:var(--dim)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-text{font-size:14px;line-height:1.5}
+
+/* VOICE FINGERPRINT */
+.voice-fp{background:linear-gradient(135deg,var(--surface),#0d1a1a);border:1px solid var(--green-mid);border-radius:14px;padding:20px;margin-bottom:20px}
+.vfp-title{font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px}
+.vfp-traits{display:flex;flex-wrap:wrap;gap:8px}
+.vfp-trait{background:var(--green-dim);border:1px solid var(--green-mid);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--green);display:flex;align-items:center;gap:6px}
+.vfp-trait::before{content:'✦';font-size:9px;opacity:0.7}
+
+/* TOOLTIP */
+.tooltip-wrap{position:relative;display:inline-block}
+.tooltip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1c2035;border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:10}
+.tooltip-wrap:hover .tooltip{opacity:1}
+
+/* ROI HOURLY RATE */
+.hourly-input-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
+.hourly-input-wrap span{font-size:13px;color:var(--muted)}
+.hourly-input{background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;color:var(--text);font-family:var(--font-mono);font-size:13px;width:80px;outline:none}
+.hourly-input:focus{border-color:var(--green)}
+</style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useCallback } = React;
+const { useState, useEffect, useRef, useCallback } = React;
+const API = 'https://replymate-backend-production.up.railway.app';
 
-const API_BASE = 'https://replymate-backend-production.up.railway.app'; // update after deploy
-
-async function api(path, licenseKey, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: { 'x-license-key': licenseKey, 'Content-Type': 'application/json', ...(options.headers || {}) }
-  });
-  if (!res.ok) throw new Error(`${res.status}`);
-  return res.json();
+// ── Helpers ──────────────────────────────────────────────────────────────
+function api(path, key, opts = {}) {
+  return fetch(`${API}${path}`, {
+    ...opts,
+    headers: { 'x-license-key': key, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────
-function StatCard({ label, value, sub, color = '#111827', bg = '#fff', border = '#e5e7eb', icon }) {
-  return (
-    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: '20px 22px' }}>
-      {icon && <div style={{ fontSize: 22, marginBottom: 10 }}>{icon}</div>}
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: '-0.03em', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+  return String(Math.round(n));
 }
 
-// ── Mini bar chart ────────────────────────────────────────────────────
-function MiniChart({ data }) {
-  const max = Math.max(...data.map(d => d.replies_count || 0), 1);
+function fmtGBP(n) {
+  if (!n) return '£0';
+  if (n >= 1000) return '£' + (n / 1000).toFixed(1) + 'k';
+  return '£' + Math.round(n);
+}
+
+function useCountUp(target, duration = 1200, delay = 0) {
+  const [val, setVal] = useState(0);
+  const started = useRef(false);
+  useEffect(() => {
+    if (target === 0 || started.current) return;
+    started.current = true;
+    const timer = setTimeout(() => {
+      const start = Date.now();
+      const step = () => {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setVal(Math.round(eased * target));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [target]);
+  return val;
+}
+
+const INTENT_COLORS = {
+  tracking: '#4361ee', return: '#ef4444', refund: '#ef4444',
+  positive_feedback: '#00d68f', shipping_inquiry: '#a855f7',
+  item_question: '#f7b731', payment_confirmation: '#00d68f',
+  availability: '#67e8f9', dispatch_confirmation: '#4361ee',
+  cancellation: '#f7b731', general: '#8892a4', damaged_item: '#ef4444',
+  discount_request: '#f7b731', off_platform: '#a855f7'
+};
+
+const PREF_COLORS = {
+  tone: 'pref-tone', length: 'pref-length', content: 'pref-content',
+  policy: 'pref-policy', greeting: 'pref-greeting', closing: 'pref-closing'
+};
+
+// ── Counter Component ────────────────────────────────────────────────────
+function Counter({ value, prefix = '', suffix = '', delay = 0 }) {
+  const v = useCountUp(typeof value === 'number' ? value : 0, 1200, delay);
+  if (typeof value !== 'number') return <span>{value}</span>;
+  return <span className="count-anim" style={{ animationDelay: delay + 'ms' }}>
+    {prefix}{v.toLocaleString()}{suffix}
+  </span>;
+}
+
+// ── Sparkline ────────────────────────────────────────────────────────────
+function Sparkline({ data, color = '#4361ee' }) {
+  if (!data || !data.length) return null;
+  const max = Math.max(...data, 1);
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 48 }}>
-      {data.map(d => (
-        <div key={d.date} title={`${d.date}: ${d.replies_count} replies`} style={{ flex: 1, background: '#4f46e5', borderRadius: '2px 2px 0 0', height: `${Math.max(4, (d.replies_count / max) * 44)}px`, opacity: 0.7 }} />
+    <div className="sparkline-wrap">
+      {data.map((v, i) => (
+        <div key={i} className="spark-bar" style={{
+          height: Math.max((v / max) * 48, 3),
+          background: i === data.length - 1 ? color : color + '55'
+        }} />
       ))}
     </div>
   );
 }
 
-// ── Login Screen ──────────────────────────────────────────────────────
+// ── ROI Card ─────────────────────────────────────────────────────────────
+function ROICard({ label, value, prefix, suffix, sub, color, bgNum, delay, tooltip }) {
+  return (
+    <div className={`roi-card ${color}`}>
+      {tooltip ? (
+        <div className="tooltip-wrap">
+          <div className="roi-label">{label} <span style={{ color: 'var(--dim)', fontSize: 11 }}>ⓘ</span></div>
+          <div className="tooltip">{tooltip}</div>
+        </div>
+      ) : <div className="roi-label">{label}</div>}
+      <div className="roi-value">
+        {prefix && <span style={{ fontSize: 22, marginRight: 2 }}>{prefix}</span>}
+        {typeof value === 'number'
+          ? <Counter value={value} delay={delay} />
+          : value}
+        {suffix && <span style={{ fontSize: 18, marginLeft: 2 }}>{suffix}</span>}
+      </div>
+      {sub && <div className="roi-sub">{sub}</div>}
+      <div className="roi-bg-num">{bgNum}</div>
+    </div>
+  );
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'overview',  label: 'Overview',       icon: '◈', color: '#4361ee' },
+  { id: 'intel',     label: 'Buyer Intel',     icon: '◎', color: '#a855f7' },
+  { id: 'dna',       label: 'Style DNA',       icon: '◇', color: '#00d68f' },
+  { id: 'risk',      label: 'Risk Shield',     icon: '◉', color: '#ef4444' },
+  { id: 'feedback',  label: 'Feedback',        icon: '★', color: '#f7b731' },
+  { id: 'history',   label: 'Reply History',   icon: '≡', color: '#8892a4' },
+];
+
+// ── Login Screen ──────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
   const [key, setKey] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  async function handleLogin() {
+  const [err, setErr] = useState('');
+  const submit = async () => {
     if (!key.trim()) return;
-    setLoading(true); setError('');
+    setLoading(true); setErr('');
     try {
-      const data = await api('/license/validate', key.trim());
-      if (data.valid) {
-        localStorage.setItem('rm_license_key', key.trim());
-        onLogin(key.trim(), data);
-      } else {
-        setError(data.reason === 'trial_expired' ? 'Your 14-day trial has ended. Please upgrade to continue.' : 'Invalid license key. Check the key from your welcome email.');
-      }
+      await api('/customer/profile', key.trim());
+      onLogin(key.trim());
     } catch (e) {
-      setError('Could not connect to server. Try again shortly.');
-    } finally { setLoading(false); }
-  }
+      setErr('Invalid license key. Check your welcome email.');
+    }
+    setLoading(false);
+  };
+  return (
+    <div className="login-wrap">
+      <div className="login-card">
+        <div className="login-logo">
+          <div className="login-logo-mark">✦</div>
+          <div className="login-logo-text">Reply<span>Mate</span> Pro</div>
+        </div>
+        <div className="login-title">Command Centre</div>
+        <div className="login-sub">Enter your license key to access your seller dashboard and performance intelligence.</div>
+        <div className="input-wrap">
+          <input value={key} onChange={e => setKey(e.target.value)}
+            placeholder="RM-XXXX-XXXX-XXXX-XXXX"
+            onKeyDown={e => e.key === 'Enter' && submit()} />
+        </div>
+        <button className="btn-primary" onClick={submit} disabled={loading || !key.trim()}>
+          {loading ? 'Verifying...' : 'Open Dashboard →'}
+        </button>
+        {err && <div className="login-err">{err}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ── Overview Tab ─────────────────────────────────────────────────────────
+function OverviewTab({ usage, profile }) {
+  const daily = (usage?.daily_last_7 || []).map(d => d.replies_count || 0);
+  const thisMonth = usage?.this_month || {};
+  const allTime = usage?.all_time || {};
+  const hourly = parseFloat(localStorage.getItem('rm_hourly') || '25');
+  const [rate, setRate] = useState(hourly);
+
+  const hours = Math.round((allTime.replies || 0) * 8 / 60 * 10) / 10;
+  const timeSaved = Math.round(hours * rate);
+  const riskHandled = usage?.top_intents?.filter(([i]) =>
+    ['refund','return','cancellation','damaged_item'].includes(i)
+  ).reduce((s, [, n]) => s + n, 0) || 0;
+
+  const saveRate = (v) => {
+    setRate(v);
+    localStorage.setItem('rm_hourly', v);
+  };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f5f3ff, #eff6ff)' }}>
-      <div style={{ background: '#fff', borderRadius: 16, padding: 40, width: 420, boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-          <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16 }}>✦</div>
-          <div style={{ fontWeight: 800, fontSize: 18 }}>Reply<span style={{ color: '#4f46e5' }}>Mate</span> Pro</div>
+    <div className="section-content">
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-title">Monthly Activity — Last 7 Days</div>
+        <div className="mini-stats">
+          <div className="mini-stat">
+            <div className="mini-stat-val" style={{ color: 'var(--blue)' }}>{thisMonth.replies || 0}</div>
+            <div className="mini-stat-label">Replies this month</div>
+          </div>
+          <div className="mini-stat">
+            <div className="mini-stat-val" style={{ color: 'var(--green)' }}>{allTime.replies || 0}</div>
+            <div className="mini-stat-label">All-time replies</div>
+          </div>
+          <div className="mini-stat">
+            <div className="mini-stat-val" style={{ color: 'var(--amber)' }}>{hours}h</div>
+            <div className="mini-stat-label">Hours saved (all-time)</div>
+          </div>
         </div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>My Dashboard</h2>
-        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Enter your license key from your welcome email.</p>
-        <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'block', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>License Key</label>
-        <input value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} placeholder="RM-XXXX-XXXX-XXXX-XXXX" style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '11px 14px', fontSize: 14, fontFamily: 'monospace', outline: 'none', marginBottom: 16 }} />
-        {error && <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '10px 12px', color: '#be123c', fontSize: 13, marginBottom: 14 }}>{error}</div>}
-        <button onClick={handleLogin} disabled={loading} style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 9, padding: 12, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}>
-          {loading ? 'Checking...' : 'Enter Dashboard →'}
-        </button>
-        <div style={{ textAlign: 'center', marginTop: 16, fontSize: 12, color: '#9ca3af' }}>
-          Don't have a key? <a href="/" style={{ color: '#4f46e5', fontWeight: 600 }}>Start free trial</a>
+        <Sparkline data={daily} color="#4361ee" />
+        {daily.every(d => d === 0) && (
+          <div className="empty-state" style={{ paddingTop: 24 }}>
+            <div className="empty-text">No replies yet in the last 7 days. Start on eBay!</div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Time Value Saved (All-Time)</div>
+          <div style={{ fontSize: 40, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--green)', marginBottom: 6 }}>
+            £{timeSaved.toLocaleString()}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
+            {hours} hours × £{rate}/hr
+          </div>
+          <div className="hourly-input-wrap">
+            <span>Your hourly rate: £</span>
+            <input className="hourly-input" type="number" value={rate}
+              onChange={e => saveRate(Number(e.target.value))} min={5} max={500} />
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-title">Complex Situations Handled</div>
+          <div style={{ fontSize: 40, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--amber)', marginBottom: 6 }}>
+            {riskHandled}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5 }}>
+            Returns, refunds, cancellations and damaged item enquiries handled by the AI agent — not you.
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: 'var(--green)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            ✦ Each one could have been a defect
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Plan Badge ────────────────────────────────────────────────────────
-function PlanBadge({ plan }) {
-  const styles = {
-    trial:   { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
-    pro:     { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-    agency:  { bg: '#f5f3ff', color: '#4f46e5', border: '#ddd6fe' },
-    expired: { bg: '#f9fafb', color: '#9ca3af', border: '#e5e7eb' }
-  };
-  const s = styles[plan] || styles.expired;
-  return <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>{plan?.toUpperCase()}</span>;
-}
-
-// ── Main App ───────────────────────────────────────────────────────────
-function CustomerApp() {
-  const [licenseKey, setLicenseKey] = useState(localStorage.getItem('rm_license_key') || '');
-  const [licenseData, setLicenseData] = useState(null);
-  const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState('overview');
-  const [profile, setProfile] = useState(null);
-  const [usage, setUsage] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [histTotal, setHistTotal] = useState(0);
-  const [histPage, setHistPage] = useState(1);
-  const [histSearch, setHistSearch] = useState('');
-  const [tones, setTones] = useState([]);
-  const [convos, setConvos] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [editProfile, setEditProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({});
-  const [newTone, setNewTone] = useState('');
-  const [ebayNotice, setEbayNotice] = useState(null); // { type: 'success'|'error', message: string }
-
-  const call = useCallback((path, opts) => api(path, licenseKey, opts), [licenseKey]);
-
-  function handleLogin(key, data) {
-    setLicenseKey(key);
-    setLicenseData(data);
-    setAuthed(true);
-    // Read URL params — eBay OAuth callback lands here
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('ebay_connected') === 'true') {
-      setTab('settings');
-      setEbayNotice({ type: 'success', message: `eBay account connected: @${params.get('username') || 'your account'}` });
-      window.history.replaceState({}, '', '/');
-    } else if (params.get('ebay_error')) {
-      setTab('settings');
-      const errMap = {
-        missing_params: 'OAuth flow was started without a license key. Please connect from the Settings tab below.',
-        token_failed: 'eBay token exchange failed. Try connecting again.',
-        user_not_found: 'License key not found. Make sure you are logged in.',
-        server_error: 'Server error during eBay connection. Try again.'
-      };
-      setEbayNotice({ type: 'error', message: errMap[params.get('ebay_error')] || `eBay error: ${params.get('ebay_error')}` });
-      window.history.replaceState({}, '', '/');
-    }
-  }
-
-  useEffect(() => {
-    if (!authed) return;
-    setLoading(true);
-    Promise.all([
-      call('/customer/profile'),
-      call('/usage/summary')
-    ]).then(([p, u]) => {
-      setProfile(p);
-      setUsage(u);
-      setProfileForm({ name: p.name || '', business_name: p.business_name || '', signature_name: p.signature_name || '', reply_tone: p.reply_tone || 'professional' });
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, [authed]);
-
-  useEffect(() => {
-    if (!authed || tab !== 'history') return;
-    const params = new URLSearchParams({ page: histPage, limit: 20 });
-    if (histSearch) params.set('search', histSearch);
-    call(`/usage/history?${params}`).then(d => { setHistory(d.replies || []); setHistTotal(d.total || 0); });
-  }, [authed, tab, histPage, histSearch]);
-
-  useEffect(() => {
-    if (!authed || tab !== 'tone') return;
-    call('/customer/tone-samples').then(d => setTones(d.samples || []));
-  }, [authed, tab]);
-
-  useEffect(() => {
-    if (!authed || tab !== 'billing') return;
-    call('/customer/profile').then(d => setProfile(d));
-  }, [authed, tab]);
-
-  async function saveProfile() {
-    await call('/customer/profile', { method: 'PUT', body: JSON.stringify(profileForm) });
-    setProfile(p => ({ ...p, ...profileForm }));
-    setEditProfile(false);
-  }
-
-  async function addTone() {
-    if (!newTone.trim()) return;
-    await call('/customer/tone-samples', { method: 'POST', body: JSON.stringify({ text: newTone }) });
-    setNewTone('');
-    call('/customer/tone-samples').then(d => setTones(d.samples || []));
-  }
-
-  async function deleteTone(id) {
-    await call(`/customer/tone-samples/${id}`, { method: 'DELETE' });
-    setTones(t => t.filter(s => s.id !== id));
-  }
-
-  async function openBillingPortal() {
-    const data = await call('/stripe/create-portal', { method: 'POST', body: JSON.stringify({ license_key: licenseKey }) });
-    if (data.portal_url) window.open(data.portal_url, '_blank');
-  }
-
-  async function openCheckout(plan) {
-    const data = await call('/stripe/create-checkout', { method: 'POST', body: JSON.stringify({ license_key: licenseKey, plan }) });
-    if (data.checkout_url) window.location.href = data.checkout_url;
-  }
-
-  if (!authed) return <LoginScreen onLogin={handleLogin} />;
-
-  const tabs = [
-    { id: 'overview', label: '📊 Overview' },
-    { id: 'history', label: '📋 Reply History' },
-    { id: 'tone', label: '🎭 Tone Library' },
-    { id: 'billing', label: '💳 Billing' },
-    { id: 'settings', label: '⚙ Settings' }
-  ];
-
-  const INTENT_LABELS = { tracking: 'Tracking', return: 'Return Request', refund: 'Refund', damaged_item: 'Damaged Item', shipping_inquiry: 'Shipping', item_question: 'Product Q&A', discount_request: 'Discount', cancellation: 'Cancel Order', positive_feedback: 'Positive', general: 'General' };
+// ── Buyer Intel Tab ───────────────────────────────────────────────────────
+function IntelTab({ usage }) {
+  const intents = usage?.top_intents || [];
+  const total = intents.reduce((s, [, n]) => s + n, 0) || 1;
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      {/* Header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #f3f4f6', padding: '0 28px', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13 }}>✦</div>
-          <span style={{ fontWeight: 800, fontSize: 15 }}>Reply<span style={{ color: '#4f46e5' }}>Mate</span> Pro</span>
-        </div>
-        <div style={{ display: 'flex', gap: 2 }}>
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ background: tab === t.id ? '#f5f3ff' : 'none', border: 'none', borderRadius: 7, padding: '6px 12px', fontWeight: 600, fontSize: 12, color: tab === t.id ? '#4f46e5' : '#6b7280', cursor: 'pointer' }}>{t.label}</button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {profile && <PlanBadge plan={profile.plan} />}
-          <button onClick={() => { localStorage.removeItem('rm_license_key'); setAuthed(false); setLicenseKey(''); }} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 7, padding: '5px 12px', fontSize: 12, color: '#9ca3af', cursor: 'pointer' }}>Sign Out</button>
-        </div>
-      </div>
-
-      <div style={{ padding: 28, maxWidth: 1100, margin: '0 auto' }}>
-        {loading && <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>Loading...</div>}
-
-        {/* ── OVERVIEW ── */}
-        {tab === 'overview' && !loading && profile && usage && (
-          <div>
-            <div style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Welcome back, {profile.name || 'Seller'} 👋</h2>
-              {profile.plan === 'trial' && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 9, padding: '10px 14px', fontSize: 13, color: '#92400e', marginTop: 10, display: 'inline-block' }}>⏰ Trial ends in <strong>{profile.trial_days_left} days</strong> — <button onClick={() => setTab('billing')} style={{ background: 'none', border: 'none', color: '#4f46e5', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>upgrade now →</button></div>}
+    <div className="section-content">
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Message Type Breakdown (Last 30 days)</div>
+          {intents.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">◎</div>
+              <div className="empty-text">No data yet. Generate some replies first.</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-              <StatCard icon="⚡" label="Replies This Month" value={usage.this_month?.replies || 0} sub="AI-generated" color="#4f46e5" bg="#f5f3ff" border="#ddd6fe" />
-              <StatCard icon="📅" label="All Time Replies" value={usage.all_time?.replies || 0} />
-              <StatCard icon="💰" label="AI Cost This Month" value={`$${(usage.this_month?.cost || 0).toFixed(4)}`} sub="OpenAI + Anthropic" />
-              <StatCard icon="⏱" label="Est. Time Saved" value={`${Math.round((usage.all_time?.replies || 0) * 3)}m`} sub="~3 mins per reply" color="#15803d" bg="#f0fdf4" border="#bbf7d0" />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Activity — Last 7 Days</div>
-                {usage.daily_last_7?.length > 0 ? <MiniChart data={usage.daily_last_7} /> : <div style={{ color: '#9ca3af', fontSize: 13, padding: '20px 0' }}>No data yet — start replying on eBay!</div>}
-              </div>
-              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 14 }}>Top Customer Intents</div>
-                {usage.top_intents?.length > 0 ? usage.top_intents.map(([intent, count]) => (
-                  <div key={intent} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <span style={{ fontSize: 13, color: '#374151' }}>{INTENT_LABELS[intent] || intent}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#4f46e5' }}>{count}</span>
+          ) : (
+            <div className="intent-bar-wrap">
+              {intents.map(([intent, count], i) => (
+                <div className="intent-row" key={intent} style={{ animationDelay: i * 80 + 'ms' }}>
+                  <div className="intent-label">{intent.replace(/_/g, ' ')}</div>
+                  <div className="intent-track">
+                    <div className="intent-fill" style={{
+                      width: (count / total * 100) + '%',
+                      background: INTENT_COLORS[intent] || '#8892a4'
+                    }} />
                   </div>
-                )) : <div style={{ color: '#9ca3af', fontSize: 13 }}>No data yet</div>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── HISTORY ── */}
-        {tab === 'history' && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Reply History ({histTotal})</h2>
-              <input value={histSearch} onChange={e => { setHistSearch(e.target.value); setHistPage(1); }} placeholder="Search messages..." style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px', fontSize: 13, width: 240, outline: 'none' }} />
-            </div>
-            {history.map(r => (
-              <div key={r.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 11, padding: 18, marginBottom: 12 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 10, alignItems: 'center' }}>
-                  <span style={{ background: '#f5f3ff', color: '#4f46e5', border: '1px solid #ddd6fe', borderRadius: 12, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{INTENT_LABELS[r.intent] || r.intent}</span>
-                  <span style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: 12, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{r.route === 'rule' ? '⚡ Free' : r.route === 'mini' ? '🤖 GPT-mini' : '🔮 Claude'}</span>
-                  <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 'auto' }}>{new Date(r.created_at).toLocaleDateString()}</span>
-                </div>
-                <div style={{ fontSize: 12, color: '#6b7280', background: '#f9fafb', borderRadius: 7, padding: '8px 11px', marginBottom: 8, fontFamily: 'monospace' }}>{(r.customer_message || '').slice(0, 200)}</div>
-                <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6 }}>{(r.generated_reply || '').slice(0, 300)}</div>
-              </div>
-            ))}
-            {history.length === 0 && <div style={{ textAlign: 'center', padding: 60, color: '#9ca3af' }}>No replies yet. Start generating replies on eBay!</div>}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-              <button disabled={histPage === 1} onClick={() => setHistPage(p => p - 1)} style={{ border: '1px solid #e5e7eb', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', background: '#fff', fontSize: 13 }}>← Prev</button>
-              <span style={{ padding: '6px 12px', fontSize: 13 }}>Page {histPage}</span>
-              <button disabled={history.length < 20} onClick={() => setHistPage(p => p + 1)} style={{ border: '1px solid #e5e7eb', borderRadius: 7, padding: '6px 14px', cursor: 'pointer', background: '#fff', fontSize: 13 }}>Next →</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── TONE LIBRARY ── */}
-        {tab === 'tone' && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Tone Library</h2>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>Paste examples of your past eBay replies. AI will learn your writing style and mimic it in every generated reply.</p>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Add New Sample</div>
-              <textarea value={newTone} onChange={e => setNewTone(e.target.value)} rows={5} placeholder="Paste a full conversation — buyer message + your reply..." style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px', fontSize: 13, resize: 'vertical', outline: 'none', fontFamily: 'monospace', lineHeight: 1.6 }} />
-              <button onClick={addTone} style={{ marginTop: 10, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '9px 20px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>+ Add to Library</button>
-            </div>
-            {tones.map(s => (
-              <div key={s.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>Added {new Date(s.created_at).toLocaleDateString()}</span>
-                  <button onClick={() => deleteTone(s.id)} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 12 }}>✕ Remove</button>
-                </div>
-                <div style={{ fontSize: 12, color: '#6b7280', fontFamily: 'monospace', lineHeight: 1.6 }}>{s.text.slice(0, 300)}{s.text.length > 300 ? '...' : ''}</div>
-              </div>
-            ))}
-            {tones.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: '#d1d5db', fontSize: 13 }}>No samples yet. Add your first one above.</div>}
-          </div>
-        )}
-
-        {/* ── BILLING ── */}
-        {tab === 'billing' && profile && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24 }}>Billing & Plan</h2>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28, marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontSize: 14, color: '#6b7280', marginBottom: 4 }}>Current Plan</div>
-                  <PlanBadge plan={profile.plan} />
-                </div>
-                {profile.plan === 'trial' && <div style={{ fontSize: 14, color: '#b45309', fontWeight: 600 }}>⏰ {profile.trial_days_left} days remaining</div>}
-                {(profile.plan === 'pro' || profile.plan === 'agency') && profile.subscription_end && <div style={{ fontSize: 13, color: '#6b7280' }}>Renews {new Date(profile.subscription_end).toLocaleDateString()}</div>}
-              </div>
-
-              {(profile.plan === 'trial' || profile.plan === 'expired') && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div style={{ border: '2px solid #4f46e5', borderRadius: 12, padding: 24 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#4f46e5', marginBottom: 4 }}>PRO</div>
-                    <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 8, letterSpacing: '-0.03em' }}>$19<span style={{ fontSize: 14, fontWeight: 500, color: '#9ca3af' }}>/mo</span></div>
-                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Unlimited replies · 1 eBay account</div>
-                    <button onClick={() => openCheckout('pro')} style={{ width: '100%', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '10px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Upgrade to Pro →</button>
-                  </div>
-                  <div style={{ border: '2px solid #7c3aed', borderRadius: 12, padding: 24 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#7c3aed', marginBottom: 4 }}>AGENCY</div>
-                    <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 8, letterSpacing: '-0.03em' }}>$49<span style={{ fontSize: 14, fontWeight: 500, color: '#9ca3af' }}>/mo</span></div>
-                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>Unlimited replies · 3 eBay accounts</div>
-                    <button onClick={() => openCheckout('agency')} style={{ width: '100%', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', border: 'none', borderRadius: 8, padding: '10px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Upgrade to Agency →</button>
-                  </div>
-                </div>
-              )}
-
-              {(profile.plan === 'pro' || profile.plan === 'agency') && (
-                <button onClick={openBillingPortal} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 9, padding: '10px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#374151' }}>Manage Subscription / Cancel →</button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── SETTINGS ── */}
-        {tab === 'settings' && profile && (
-          <div>
-            {ebayNotice && (
-              <div style={{ background: ebayNotice.type === 'success' ? '#f0fdf4' : '#fff1f2', border: `1px solid ${ebayNotice.type === 'success' ? '#bbf7d0' : '#fecdd3'}`, borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: ebayNotice.type === 'success' ? '#15803d' : '#be123c', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{ebayNotice.type === 'success' ? '✓ ' : '⚠ '}{ebayNotice.message}</span>
-                <button onClick={() => setEbayNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 16 }}>✕</button>
-              </div>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 800 }}>Account Settings</h2>
-              {!editProfile && <button onClick={() => setEditProfile(true)} style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 8, padding: '8px 16px', color: '#4f46e5', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Edit</button>}
-            </div>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 18, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Business Info</h3>
-              {['name', 'business_name', 'signature_name'].map(field => (
-                <div key={field} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 5 }}>{field.replace('_', ' ')}</div>
-                  {editProfile
-                    ? <input value={profileForm[field] || ''} onChange={e => setProfileForm(f => ({ ...f, [field]: e.target.value }))} style={{ width: '100%', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 12px', fontSize: 13, outline: 'none' }} />
-                    : <div style={{ fontSize: 14, color: '#374151' }}>{profile[field] || <span style={{ color: '#d1d5db' }}>Not set</span>}</div>
-                  }
+                  <div className="intent-num">{count}</div>
                 </div>
               ))}
-              {editProfile && (
-                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                  <button onClick={saveProfile} style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', border: 'none', borderRadius: 8, padding: '9px 20px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Save Changes</button>
-                  <button onClick={() => setEditProfile(false)} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '9px 16px', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
-                </div>
-              )}
             </div>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.07em' }}>eBay Accounts</h3>
-              {profile.ebay_accounts?.length > 0
-                ? profile.ebay_accounts.map(a => (
-                  <div key={a.ebay_username} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
-                    <span style={{ fontSize: 14, fontWeight: 600 }}>{a.ebay_username}</span>
-                    {a.is_primary && <span style={{ fontSize: 10, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>PRIMARY</span>}
+          )}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="card" style={{ flex: 1 }}>
+            <div className="card-title">What this tells you</div>
+            {intents.length === 0 ? (
+              <div style={{ fontSize: 13, color: 'var(--dim)' }}>Insights appear once you start generating replies.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {intents.slice(0, 3).map(([intent, count]) => (
+                  <div key={intent} style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.5, paddingLeft: 10, borderLeft: `2px solid ${INTENT_COLORS[intent] || '#8892a4'}` }}>
+                    <span style={{ color: 'var(--text)', fontWeight: 600 }}>{Math.round(count / total * 100)}% {intent.replace(/_/g, ' ')}</span>
+                    {intent === 'tracking' && ' — buyers need proactive shipping updates'}
+                    {intent === 'return' && ' — return rate may need policy review'}
+                    {intent === 'positive_feedback' && ' — strong satisfaction signal'}
+                    {intent === 'shipping_inquiry' && ' — add delivery times to listings'}
+                    {intent === 'item_question' && ' — improve listing descriptions'}
+                    {intent === 'payment_confirmation' && ' — dispatch confirmation reduces anxiety'}
+                    {!['tracking','return','positive_feedback','shipping_inquiry','item_question','payment_confirmation'].includes(intent) && ' — review listing strategy'}
                   </div>
-                ))
-                : <div style={{ fontSize: 13, color: '#9ca3af' }}>No eBay account connected. <a href={`https://YOUR_RAILWAY_URL.railway.app/ebay/connect?license_key=${licenseKey}`} style={{ color: '#4f46e5', fontWeight: 600 }}>Connect now →</a></div>
-              }
-              <div style={{ marginTop: 16, fontSize: 12, color: '#9ca3af' }}>License Key: <code style={{ fontFamily: 'monospace', background: '#f9fafb', padding: '2px 6px', borderRadius: 4 }}>{licenseKey}</code></div>
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="card" style={{ flex: 1 }}>
+            <div className="card-title">Negative Signal Rate</div>
+            {(() => {
+              const neg = intents.filter(([i]) => ['refund','return','damaged_item','cancellation'].includes(i)).reduce((s, [,n]) => s + n, 0);
+              const pct = total > 0 ? Math.round(neg / total * 100) : 0;
+              const color = pct < 10 ? 'var(--green)' : pct < 25 ? 'var(--amber)' : 'var(--red)';
+              return (
+                <div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 48, fontWeight: 700, color, lineHeight: 1, marginBottom: 6 }}>{pct}%</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    {pct < 10 ? '✦ Healthy — below 10% negative intent' :
+                     pct < 25 ? '⚠ Elevated — review dispatch & product quality' :
+                     '⚠ High — significant buyer issues detected'}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<CustomerApp />);
+// ── Style DNA Tab ─────────────────────────────────────────────────────────
+function DNATab({ insights }) {
+  const grouped = insights?.grouped || {};
+  const total = insights?.total || 0;
+  const CAT_ICONS = { tone: '🎙', length: '📐', content: '📝', policy: '🛡', greeting: '👋', closing: '✍️' };
+
+  const allPrefs = Object.entries(grouped).flatMap(([cat, prefs]) =>
+    prefs.map(p => ({ ...p, cat }))
+  ).sort((a, b) => b.times_seen - a.times_seen);
+
+  const voiceTraits = [];
+  if (grouped.greeting?.length) voiceTraits.push('Opens: "' + (grouped.greeting[0].insight.slice(0, 40)) + '"');
+  if (grouped.closing?.length) voiceTraits.push('Closes: "' + (grouped.closing[0].insight.slice(0, 40)) + '"');
+  if (grouped.tone?.length) voiceTraits.push(grouped.tone[0].insight.slice(0, 50));
+  if (grouped.length?.length) voiceTraits.push(grouped.length[0].insight.slice(0, 50));
+
+  return (
+    <div className="section-content">
+      {voiceTraits.length > 0 && (
+        <div className="voice-fp" style={{ marginBottom: 20 }}>
+          <div className="vfp-title">Your Voice Fingerprint — {total} traits learned</div>
+          <div className="vfp-traits">
+            {voiceTraits.map((t, i) => (
+              <div className="vfp-trait" key={i}>{t}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="dna-grid" style={{ marginBottom: 20 }}>
+        {['tone', 'length', 'content', 'policy', 'greeting', 'closing'].map(cat => {
+          const count = grouped[cat]?.length || 0;
+          return (
+            <div className="dna-category" key={cat}>
+              <div className="dna-cat-label" style={{ color: count ? 'var(--text)' : 'var(--dim)' }}>
+                {CAT_ICONS[cat]} {cat}
+              </div>
+              <div className="dna-cat-count" style={{ color: count ? 'var(--green)' : 'var(--dim)' }}>{count}</div>
+              <div className="dna-cat-sub">rules learned</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {total === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">◇</div>
+          <div className="empty-text">
+            Style DNA builds automatically when you modify replies.<br />
+            Modify 3–4 AI replies and ReplyMate starts writing like you.
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="section-head">
+            <div className="section-title">Learned Rules</div>
+            <div className="section-count">{total} total</div>
+          </div>
+          <div className="pref-list">
+            {allPrefs.slice(0, 20).map(p => (
+              <div className="pref-item" key={p.id}>
+                <span className={`pref-badge ${PREF_COLORS[p.cat] || 'pref-tone'}`}>{p.cat}</span>
+                <span className="pref-text">{p.insight}</span>
+                <span className="pref-seen">×{p.times_seen}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Risk Shield Tab ───────────────────────────────────────────────────────
+function RiskTab({ licenseKey }) {
+  const [cases, setCases] = useState(null);
+  useEffect(() => {
+    api('/usage/history?limit=50', licenseKey)
+      .then(d => setCases((d.replies || []).filter(r => r.route === 'large' || ['refund','return','cancellation','damaged_item'].includes(r.intent))))
+      .catch(() => setCases([]));
+  }, []);
+
+  const riskCount = cases?.length || 0;
+  const riskIntents = ['refund', 'return', 'cancellation', 'damaged_item'];
+
+  return (
+    <div className="section-content">
+      <div className="grid-3" style={{ marginBottom: 20 }}>
+        <div className="card" style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 48, fontWeight: 700, color: 'var(--red)', lineHeight: 1 }}>{riskCount}</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>High-risk situations handled</div>
+        </div>
+        <div className="card" style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 48, fontWeight: 700, color: 'var(--green)', lineHeight: 1 }}>0</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Escalations to eBay case</div>
+        </div>
+        <div className="card" style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 48, fontWeight: 700, color: 'var(--amber)', lineHeight: 1 }}>
+            {riskCount > 0 ? '£' + (riskCount * 28) : '—'}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>Estimated refund exposure handled</div>
+        </div>
+      </div>
+
+      <div className="section-head">
+        <div className="section-title">Risk Event Log</div>
+      </div>
+
+      {cases === null ? (
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--dim)' }}>Loading...</div>
+      ) : cases.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">◉</div>
+          <div className="empty-text">No high-risk situations logged yet.<br />The shield activates when buyers send complex messages.</div>
+        </div>
+      ) : (
+        <div className="risk-log">
+          {cases.slice(0, 15).map(c => {
+            const isHigh = ['refund','return','cancellation'].includes(c.intent);
+            const isMed = c.intent === 'damaged_item';
+            const level = isHigh ? 'high' : isMed ? 'medium' : 'low';
+            return (
+              <div className={`risk-item ${level}`} key={c.id}>
+                <div className="risk-item-top">
+                  <span className={`risk-intent ${level}`}>{c.intent?.replace(/_/g, ' ') || 'general'}</span>
+                  <span className="risk-date">{new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                </div>
+                <div className="risk-msg">{c.customer_message}</div>
+                <div className="risk-shield-tag">✦ Handled professionally — no escalation</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Feedback Tab ──────────────────────────────────────────────────────────
+function FeedbackTab({ licenseKey }) {
+  const [cases, setCases] = useState(null);
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    api('/feedback/cases?limit=20', licenseKey).then(d => setCases(d.cases || [])).catch(() => setCases([]));
+    api('/feedback/settings', licenseKey).then(setSettings).catch(() => {});
+  }, []);
+
+  const won = (cases || []).filter(c => c.status === 'revision_sent' || c.status === 'resolved').length;
+  const pending = (cases || []).filter(c => c.status === 'draft_ready').length;
+  const total = (cases || []).length;
+
+  return (
+    <div className="section-content">
+      <div className="feedback-stats">
+        <div className="fb-stat">
+          <div className="fb-stat-num" style={{ color: 'var(--amber)' }}>{total}</div>
+          <div className="fb-stat-label">Cases processed</div>
+        </div>
+        <div className="fb-stat">
+          <div className="fb-stat-num" style={{ color: 'var(--blue)' }}>{pending}</div>
+          <div className="fb-stat-label">Awaiting approval</div>
+        </div>
+        <div className="fb-stat">
+          <div className="fb-stat-num" style={{ color: 'var(--green)' }}>{won}</div>
+          <div className="fb-stat-label">Revisions sent</div>
+        </div>
+      </div>
+
+      {settings && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card-title">Agent Status</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: settings.active ? 'var(--green)' : 'var(--dim)',
+              boxShadow: settings.active ? '0 0 8px var(--green)' : 'none'
+            }} />
+            <span style={{ fontSize: 13, color: settings.active ? 'var(--green)' : 'var(--muted)' }}>
+              {settings.active ? `Active — ${settings.mode} mode` : 'Inactive — enable in extension popup'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="section-head"><div className="section-title">Recent Cases</div></div>
+      {cases === null ? (
+        <div style={{ padding: 24, textAlign: 'center', color: 'var(--dim)' }}>Loading...</div>
+      ) : cases.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">★</div>
+          <div className="empty-text">
+            No feedback cases yet.<br />
+            Connect eBay and enable the Feedback Agent in the extension popup.
+          </div>
+        </div>
+      ) : (
+        <div className="case-list">
+          {cases.map(c => (
+            <div className="case-item" key={c.id}>
+              <div className="case-item-top">
+                <div className="case-rating">
+                  {[1,2,3,4,5].map(s => (
+                    <span key={s} style={{ color: s <= (c.rating || 3) ? '#f7b731' : 'var(--dim)', fontSize: 13 }}>★</span>
+                  ))}
+                </div>
+                <span style={{ fontSize: 12, color: 'var(--muted)', marginLeft: 6 }}>{c.buyer_id || 'Buyer'}</span>
+                <span className={`case-status ${
+                  c.status === 'draft_ready' ? 'status-draft' :
+                  c.status === 'revision_sent' ? 'status-won' : 'status-sent'
+                }`}>{c.status?.replace(/_/g, ' ')}</span>
+              </div>
+              <div className="case-comment">{c.feedback_text || 'No comment'}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── History Tab ────────────────────────────────────────────────────────────
+function HistoryTab({ licenseKey }) {
+  const [replies, setReplies] = useState(null);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const q = search ? `&search=${encodeURIComponent(search)}` : '';
+    api(`/usage/history?limit=30${q}`, licenseKey).then(d => setReplies(d.replies || [])).catch(() => setReplies([]));
+  }, [search]);
+
+  return (
+    <div className="section-content">
+      <div style={{ marginBottom: 16 }}>
+        <input
+          style={{ width: '100%', background: 'var(--card)', border: '1px solid var(--border2)', borderRadius: 10, padding: '10px 16px', color: 'var(--text)', fontSize: 13, outline: 'none' }}
+          placeholder="Search buyer messages..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+
+      {replies === null ? (
+        <div style={{ padding: 32, textAlign: 'center', color: 'var(--dim)' }}>Loading...</div>
+      ) : replies.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">≡</div>
+          <div className="empty-text">No replies yet. Open eBay and generate your first reply!</div>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Intent</th>
+                <th>Route</th>
+                <th>Buyer Message</th>
+                <th>Reply Preview</th>
+              </tr>
+            </thead>
+            <tbody>
+              {replies.map(r => (
+                <tr key={r.id}>
+                  <td style={{ color: 'var(--dim)', whiteSpace: 'nowrap', fontSize: 12 }}>
+                    {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </td>
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, padding: '2px 8px', borderRadius: 20, background: (INTENT_COLORS[r.intent] || '#8892a4') + '22', color: INTENT_COLORS[r.intent] || '#8892a4' }}>
+                      {(r.intent || 'general').replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`route-pill route-${r.route || 'rule'}`}>{r.route || 'rule'}</span>
+                  </td>
+                  <td className="msg-cell">{r.customer_message}</td>
+                  <td className="msg-cell">{r.generated_reply}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 14-Day Improvement Banner ─────────────────────────────────────────────
+function ImprovementBanner({ profile, usage }) {
+  const joinedAt = profile?.created_at ? new Date(profile.created_at) : null;
+  if (!joinedAt) return null;
+
+  const daysSinceJoin = Math.floor((Date.now() - joinedAt.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSinceJoin < 7) return null;
+
+  // Store baseline on first render
+  const baselineKey = 'rm_baseline_v1';
+  let baseline = null;
+  try { baseline = JSON.parse(localStorage.getItem(baselineKey)); } catch {}
+  if (!baseline && usage) {
+    baseline = { replies: 0, hours: 0, risk: 0 };
+    localStorage.setItem(baselineKey, JSON.stringify(baseline));
+  }
+  if (!baseline || !usage) return null;
+
+  const current = usage.all_time || {};
+  const currentReplies = current.replies || 0;
+  const currentHours = Math.round(currentReplies * 8 / 60 * 10) / 10;
+  const currentRisk = (usage.top_intents || []).filter(([i]) => ['refund','return','cancellation','damaged_item'].includes(i)).reduce((s, [,n]) => s + n, 0);
+  const rate = parseFloat(localStorage.getItem('rm_hourly') || '25');
+  const timeSaved = Math.round(currentHours * rate);
+
+  const metrics = [
+    { label: 'Total Replies', before: baseline.replies, after: currentReplies },
+    { label: 'Hours Saved', before: '0h', after: currentHours + 'h' },
+    { label: 'Time Value', before: '£0', after: '£' + timeSaved },
+    { label: 'Complex Cases', before: baseline.risk, after: currentRisk },
+  ];
+
+  return (
+    <div className="improvement-banner">
+      <div className="imp-header">
+        <div className="imp-title">📈 Your ReplyMate Impact</div>
+        <div className="imp-badge">{daysSinceJoin} DAYS IN</div>
+      </div>
+      <div className="imp-grid">
+        {metrics.map((m, i) => (
+          <div className="imp-item" key={i}>
+            <div className="imp-before">{m.before}</div>
+            <div className="imp-arrow">↓</div>
+            <div className="imp-after">{m.after}</div>
+            <div className="imp-label">{m.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────
+function App() {
+  const [licenseKey, setLicenseKey] = useState(() => localStorage.getItem('rm_license_key') || '');
+  const [profile, setProfile] = useState(null);
+  const [usage, setUsage] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async (key) => {
+    setLoading(true);
+    try {
+      const [p, u, ins] = await Promise.all([
+        api('/customer/profile', key),
+        api('/usage/summary', key),
+        api('/reply/seller/insights', key),
+      ]);
+      setProfile(p);
+      setUsage(u);
+      setInsights(ins);
+    } catch (e) {
+      setLicenseKey('');
+      localStorage.removeItem('rm_license_key');
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { if (licenseKey) load(licenseKey); }, [licenseKey]);
+
+  const handleLogin = (key) => {
+    localStorage.setItem('rm_license_key', key);
+    setLicenseKey(key);
+  };
+
+  const signOut = () => {
+    localStorage.removeItem('rm_license_key');
+    setLicenseKey(''); setProfile(null); setUsage(null); setInsights(null);
+  };
+
+  if (!licenseKey) return <LoginScreen onLogin={handleLogin} />;
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'var(--bg)' }}>
+      <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg,var(--blue),var(--green))', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>✦</div>
+      <div style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: 13, letterSpacing: '0.05em' }}>Loading your dashboard...</div>
+      <div style={{ width: 180, height: 2, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: '100%', background: 'linear-gradient(90deg,var(--blue),var(--green))', borderRadius: 2, animation: 'loadBar 1.2s ease-in-out infinite' }} />
+      </div>
+      <style>{`@keyframes loadBar{0%{width:0%;margin-left:0}50%{width:80%}100%{width:0%;margin-left:100%}}`}</style>
+    </div>
+  );
+  if (!profile) return <LoginScreen onLogin={handleLogin} />;
+
+  const thisMonth = usage?.this_month || {};
+  const allTime = usage?.all_time || {};
+  const hours = Math.round((allTime.replies || 0) * 8 / 60 * 10) / 10;
+  const rate = parseFloat(localStorage.getItem('rm_hourly') || '25');
+  const timeSaved = Math.round(hours * rate);
+  const riskHandled = (usage?.top_intents || []).filter(([i]) =>
+    ['refund','return','cancellation','damaged_item'].includes(i)
+  ).reduce((s, [,n]) => s + n, 0);
+
+  const planClass = profile.plan === 'trial' ? 'plan-trial' : profile.plan === 'agency' ? 'plan-agency' : 'plan-pro';
+  const planLabel = profile.plan === 'trial'
+    ? `Trial — ${profile.trial_days_left}d left`
+    : profile.plan === 'agency' ? 'Agency' : 'Pro';
+
+  return (
+    <div className="app">
+      {/* TOP BAR */}
+      <div className="topbar">
+        <div className="topbar-left">
+          <div className="logo-mark">✦</div>
+          <div className="logo-text">Reply<span>Mate</span> Pro</div>
+          <span style={{ color: 'var(--border2)', fontSize: 20 }}>|</span>
+          <span style={{ fontSize: 12, color: 'var(--dim)', fontFamily: 'var(--font-mono)' }}>Command Centre</span>
+        </div>
+        <div className="topbar-right">
+          <span className={`plan-badge ${planClass}`}>{planLabel}</span>
+          <span className="user-name">{profile.business_name || profile.name}</span>
+          <button className="signout-btn" onClick={signOut}>Sign out</button>
+        </div>
+      </div>
+
+      <div className="main">
+        {/* TRIAL BAR */}
+        {profile.plan === 'trial' && profile.trial_days_left <= 7 && (
+          <div className="trial-bar">
+            <div className="trial-text">
+              <strong>{profile.trial_days_left} days</strong> remaining in your trial — upgrade to keep your Style DNA and all reply history.
+            </div>
+            <button className="upgrade-btn" onClick={() => window.open('https://replymate.pro/#pricing', '_blank')}>
+              Upgrade Now →
+            </button>
+          </div>
+        )}
+
+        {/* 14 DAY IMPROVEMENT BANNER */}
+        <ImprovementBanner profile={profile} usage={usage} />
+
+        {/* ROI WALL */}
+        <div className="roi-grid">
+          <ROICard label="Replies Generated" value={allTime.replies || 0} color="blue" bgNum="∞" delay={0}
+            sub={`${thisMonth.replies || 0} this month`} tooltip="Total AI replies generated across all time" />
+          <ROICard label="Hours Saved" value={hours} suffix="h" color="green" bgNum="⏱" delay={100}
+            sub="at 8 min avg per reply" />
+          <ROICard label="Time Value Saved" prefix="£" value={timeSaved} color="amber" bgNum="£" delay={200}
+            sub={`at £${rate}/hr — adjust in Overview`} />
+          <ROICard label="Complex Cases Handled" value={riskHandled} color="purple" bgNum="⚡" delay={300}
+            sub="returns, refunds, cancellations" tooltip="Messages classified as high-risk handled by the AI agent" />
+        </div>
+
+        {/* TABS */}
+        <div className="tabs-wrap">
+          {TABS.map(t => (
+            <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(t.id)}>
+              <span style={{ color: t.color, fontSize: 11 }}>{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TAB CONTENT */}
+        {activeTab === 'overview'  && <OverviewTab  usage={usage} profile={profile} key="ov" />}
+        {activeTab === 'intel'     && <IntelTab     usage={usage} key="in" />}
+        {activeTab === 'dna'       && <DNATab       insights={insights} key="dna" />}
+        {activeTab === 'risk'      && <RiskTab      licenseKey={licenseKey} key="risk" />}
+        {activeTab === 'feedback'  && <FeedbackTab  licenseKey={licenseKey} key="fb" />}
+        {activeTab === 'history'   && <HistoryTab   licenseKey={licenseKey} key="hist" />}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
